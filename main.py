@@ -4,97 +4,123 @@ import csv
 import re
 
 def extract_emails(text):
-    # Define a regular expression pattern for extracting emails
     email_pattern = r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}'
-    # Use re.findall to find all occurrences of the pattern in the text
-    return re.findall(email_pattern, text)
+    emails = re.findall(email_pattern, text)
+    print(f"Extracted emails: {emails}")
+    return emails
+
+def extract_phone_numbers(text):
+    phone_pattern = r'\(?\b\d{3}[-.)\s]?\d{3}[-.\s]?\d{4}\b'
+    phone_numbers = re.findall(phone_pattern, text)
+    print(f"Extracted phone numbers: {phone_numbers}")
+    return phone_numbers
 
 def extract_name(soup):
-    # Example logic to extract a name (this can vary widely depending on the site)
-    name = None
-    # Try to extract name from meta tags or specific headings
     name_tag = soup.find('meta', attrs={'name': 'author'})
     if name_tag:
-        name = name_tag.get('content', None)
-    if not name:
-        h1_tag = soup.find('h1')
-        if h1_tag:
-            name = h1_tag.text.strip()
-    return name or 'Name Not Found'
+        return name_tag.get('content', None)
+    
+    h1_tag = soup.find('h1')
+    if h1_tag:
+        return h1_tag.text.strip()
+    
+    return 'Name Not Found'
 
 def extract_company(soup):
-    # Example logic to extract a company name (again, this can vary)
-    company = None
     title_tag = soup.find('title')
     if title_tag:
-        company = title_tag.text.strip()
-    # Additional checks for known sections or tags
-    if not company:
-        company_meta = soup.find('meta', attrs={'property': 'og:site_name'})
-        if company_meta:
-            company = company_meta.get('content', None)
-    return company or 'Company Not Found'
+        return title_tag.text.strip()
+    
+    company_meta = soup.find('meta', attrs={'property': 'og:site_name'})
+    if company_meta:
+        return company_meta.get('content', None)
+    
+    return 'Company Not Found'
 
 def scrape_website(url):
     try:
-        # Send a GET request to the specified URL
         response = requests.get(url)
-        # Raise an HTTPError for bad responses (4xx and 5xx)
         response.raise_for_status()
+        print(f"Fetched content from {url}")
     except requests.exceptions.RequestException as e:
-        # Print an error message if the request fails
         print(f"Error fetching {url}: {e}")
-        return None, None, []  # Return None for name/company and empty list for emails
+        return None, None, [], []
     
-    # Parse the website's HTML content using BeautifulSoup
     soup = BeautifulSoup(response.text, 'html.parser')
-    # Extract all the text from the parsed HTML
     text = soup.get_text()
-    # Extract emails from the text using the extract_emails function
+    
     emails = extract_emails(text)
-    # Extract name and company using their respective functions
+    phone_numbers = extract_phone_numbers(text)
+    
     name = extract_name(soup)
     company = extract_company(soup)
-    return name, company, emails
+    
+    return name, company, emails, phone_numbers
 
-def save_to_csv(data, filename='emails.csv'):
-    # Open a new CSV file for writing
-    with open(filename, mode='w', newline='') as file:
-        # Create a CSV writer object
-        writer = csv.writer(file)
-        # Write the header row to the CSV file
-        writer.writerow(['Name', 'Company', 'Email'])
-        # Write each row of data to the CSV file
-        for row in data:
-            writer.writerow(row)
+def save_to_csv(data, filename='contacts.csv'):
+    # Specify the full path where you want to save the CSV file
+    full_path = f'd:/Ontario Tech University/GitHub Assignments/Web-Scraper/{filename}'
+    
+    if not data:
+        print("No data to save.")
+    else:
+        with open(full_path, mode='w', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerow(['Name', 'Company', 'Email', 'Phone Number'])
+            for row in data:
+                writer.writerow(row)
+        print(f"Data saved to {full_path}")
+
+
 
 def main(urls):
-    data = []  # Initialize a list to store the collected data
-    seen_emails = set()  # Initialize a set to store unique emails
+    data = []
+    seen_emails = set()
+    seen_phone_numbers = set()
     
-    # Loop through each URL in the list of URLs
     for url in urls:
-        # Scrape the website and extract name, company, and emails
-        name, company, emails = scrape_website(url)
-        # Loop through each extracted email
+        url = url.strip()  
+        print(f"Processing {url}")
+        
+        name, company, emails, phone_numbers = scrape_website(url)
+        
+        if not emails and not phone_numbers:
+            print(f"No data found for {url}")
+            continue
+        
         for email in emails:
-            # Check if the email is not already in the seen_emails set
             if email not in seen_emails:
-                # Add the email to the set to ensure uniqueness
                 seen_emails.add(email)
-                # Add a new row to the data list with extracted Name, Company, and Email
-                data.append([name, company, email])
+                data.append([name, company, email, ''])
+        
+        for phone_number in phone_numbers:
+            if phone_number not in seen_phone_numbers:
+                seen_phone_numbers.add(phone_number)
+                data.append([name, company, '', phone_number])
     
-    # Save the collected data to a CSV file
-    save_to_csv(data)
+    if data:
+        save_to_csv(data)
+    else:
+        print("No data to save.")
 
 if __name__ == '__main__':
-    # List of websites to scrape; replace with your target URLs
     urls = [
-        'example url #1'
-        'example url #2'
-        'example url #3'
-        # Add more URLs as needed
+        'https://www.boardwalkburgers.ca/',
+        'https://indraprasthaindiancuisinewhitby.com/',
+        'https://www.thevaultwhitby.com/',
+        'https://www.bollockspub.com/',
+        'https://www.billiejax.com/',
+        'https://www.instagram.com/blackjackbarandgrill/?igshid=MzRlODBiNWFlZA%3D%3D',
+        'https://www.charleyronicks.ca/',
+        'http://www.atavolabistro.com/',
+        'https://theoakandale.com/',
+        'https://www.12welvebistro.ca/',
+        'https://chucksroadhouse.com/',
+        'https://www.smashkitchen.com/',
+        'https://bigbonebbq.ca/big-bone-bbq-whitby/',
+        'https://www.thespringwoodwhitby.com/',
+        'https://www.thebrockhouse.ca/',
+        'https://www.butchies.ca/',
+        'https://www.mehfill.ca/'
     ]
-    # Call the main function with the list of URLs
     main(urls)
