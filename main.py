@@ -125,22 +125,7 @@ def main(urls):
 # Entry point of the script
 if __name__ == '__main__':
     urls = [
-        'https://www.boardwalkburgers.ca/',
-        'https://indraprasthaindiancuisinewhitby.com/',
-        'https://www.thevaultwhitby.com/',
-        'https://www.bollockspub.com/',
-        'https://www.billiejax.com/',
-        'https://www.instagram.com/blackjackbarandgrill/?igshid=MzRlODBiNWFlZA%3D%3D',
-        'https://www.charleyronicks.ca/',
-        'http://www.atavolabistro.com/',
-        'https://theoakandale.com/',
-        'https://www.12welvebistro.ca/',
-        'https://chucksroadhouse.com/',
-        'https://www.smashkitchen.com/',
-        'https://bigbonebbq.ca/big-bone-bbq-whitby/',
-        'https://www.thespringwoodwhitby.com/',
-        'https://www.thebrockhouse.ca/',
-        'https://www.butchies.ca/',
-        'https://www.mehfill.ca/'
+        'example url#1',
+        'example url#2'
     ]
     main(urls)
